@@ -126,6 +126,13 @@ end
 
 local function mirror_checkbox(_, value)
     gMirrorEnabled = value
+
+    if value == true then
+        replace_directional_dialogs()
+    else
+        smlua_text_utils_reset_all()
+    end
+    
     mod_storage_save_bool("mirrorEnabled", value)
 end
 

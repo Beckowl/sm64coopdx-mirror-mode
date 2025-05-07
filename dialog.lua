@@ -23,7 +23,7 @@ end
 -- The words "left" and "right" aren't always directional.
 -- And i'm not going to do freaking context analysis just for this
 
-local function replace_dialogs()
+function replace_directional_dialogs()
     dialog_replace_internal(DIALOG_001, 1, 4, 95, 200, "Watch out! If you wander\naround here, you're liable\nto be plastered by a\nwater bomb!\nThose enemy Bob-ombs love\nto fight, and they're\nalways finding ways to\nattack.\nThis meadow has become\na battlefield ever since\nthe Big Bob-omb got his\npaws on the Power Star.\nCan you recover the Star\nfor us? Cross the bridge\nand go right up the path\nto find the Big Bob-omb.\nPlease come back to see\nme after you've retrieved\nthe Power Star!")
     dialog_replace_internal(DIALOG_088, 1, 5, 30, 200, "Work Elevator\nFor those who get off\nhere: Grab the pole to the\nright and slide carefully\ndown.")
     dialog_replace_internal(DIALOG_089, 1, 5, 95, 200, "Both ways fraught with\ndanger! Watch your feet!\nThose who can't do the\nLong Jump, tsk, tsk. Make\nyour way to the left.\nLeft: Work Elevator\n/// Cloudy Maze\nRight: Black Hole\n///Underground Lake\n\nRed Circle: Elevator 2\n//// Underground Lake\nArrow: You are here")
@@ -34,4 +34,4 @@ local function replace_dialogs()
     dialog_replace_internal(DIALOG_140, 1, 6, 30, 200, "Elevator Area\nLeft: Hazy Maze\n/// Entrance\nRight: Black Hole\n///Elevator 1\nArrow: You are here")
 end
 
-hook_event(HOOK_ON_MODS_LOADED, replace_dialogs)
+hook_event(HOOK_ON_MODS_LOADED, replace_directional_dialogs)
