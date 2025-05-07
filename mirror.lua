@@ -7,11 +7,12 @@ local G_RDPLOADSYNC = 0xe6
 local G_RDPPIPESYNC = 0xe7
 local G_RDPTILESYNC = 0xe8
 
-local CULLING_DISABLED = 1 -- This flag will be applied to the camera once culling is fully disabled
-
-local camera
+local CULLING_DISABLED = 2 -- This flag will be applied to the camera once culling is fully disabled
 
 gMirrorEnabled = mod_storage_load_bool("mirrorEnabled") or not mod_storage_exists("mirrorEnabled")
+
+local camera
+local cullingDisabledModels = {}
 
 local function disable_face_culling(firstNode)
     local clear = G_CULL_BOTH
@@ -62,10 +63,6 @@ local function on_mario_update(m)
     m.marioObj.hookRender = HOOK_RENDER_MARIO
 end
 
-local function on_warp()
-    camera = nil
-end
-
 local function on_object_render(o)
     if o.hookRender == HOOK_RENDER_MARIO and not camera then
         -- Three parents up from Mario's node is always the camera (GraphNodeCamera).
@@ -77,22 +74,33 @@ local function on_object_render(o)
     end
 end
 
+local function on_warp(warpType)
+    if warpType == WARP_TYPE_CHANGE_AREA or warpType == WARP_TYPE_CHANGE_LEVEL then
+        camera = nil
+    end
+end
+
+local function on_instant_warp(area)
+    if area ~= gMarioStates[0].area.index then
+        camera = nil
+    end
+end
+
+local function on_object_set_model(o, modelID)
+    if not cullingDisabledModels[modelID] and o.header.gfx.sharedChild then
+        disable_face_culling(o.header.gfx.sharedChild)
+
+        cullingDisabledModels[modelID] = true
+    end
+end
+
 local function on_geo_process(n)
     if n.hookProcess ~= HOOK_RENDER_CAMERA then
         return
     end
 
     if n.extraFlags & CULLING_DISABLED == 0 then
-        disable_face_culling(n) -- Disable culling for the level DLs
-
-        for o in iter_objects() do
-            local sharedChild = o.header.gfx.sharedChild
-
-            if sharedChild then
-                disable_face_culling(sharedChild)
-            end
-        end
-
+        disable_face_culling(n)
         n.extraFlags = n.extraFlags | CULLING_DISABLED
     end
 
@@ -113,5 +121,6 @@ hook_mod_menu_checkbox("Mirroring enabled", gMirrorEnabled, mirror_checkbox)
 hook_event(HOOK_ON_OBJECT_RENDER, on_object_render)
 hook_event(HOOK_ON_GEO_PROCESS, on_geo_process)
 hook_event(HOOK_MARIO_UPDATE, on_mario_update)
-hook_event(HOOK_ON_INSTANT_WARP, on_warp)
+hook_event(HOOK_ON_INSTANT_WARP, on_instant_warp)
 hook_event(HOOK_ON_WARP, on_warp)
+hook_event(HOOK_OBJECT_SET_MODEL, on_object_set_model)
