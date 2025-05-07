@@ -1,7 +1,11 @@
 local HOOK_RENDER_MARIO = 1
 local HOOK_RENDER_CAMERA = 2
 
-local G_CULL_BOTH = 0x00000600 -- G_CULL_BACK | G_CULL_FRONT
+local G_CULL_BOTH = 0x00000200 | 0x00000400  -- G_CULL_BACK | G_CULL_FRONT
+local DEFAULT_GEOMETRY_MODE = 
+    0x00000004 |   -- G_SHADE
+    0x00200000 |   -- G_SHADING_SMOOTH
+    0x00020000     -- G_LIGHTING
 
 local G_RDPLOADSYNC = 0xe6
 local G_RDPPIPESYNC = 0xe7
@@ -16,30 +20,28 @@ local cullingDisabledModels = {}
 
 local function disable_face_culling(firstNode)
     local clear = G_CULL_BOTH
-    local set = 0
+    local set = DEFAULT_GEOMETRY_MODE
 
     geo_traverse_nodes(firstNode, function(node)
-        if node.type == GRAPH_NODE_TYPE_ANIMATED_PART or node.type == GRAPH_NODE_TYPE_DISPLAY_LIST then
-            local dl = cast_graph_node(node).displayList
+        local dl = graph_node_get_displaylist(node)
 
-            if not dl then
-                return
-            end
-
-            gfx_parse(dl, function(cmd, op)
-                if op == G_GEOMETRYMODE then
-                    clear = ~_SHIFTR(cmd.w0, 0, 24) | G_CULL_BOTH
-                    set = cmd.w1 & (~G_CULL_BOTH)
-
-                    gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
-                elseif op == G_RDPLOADSYNC or op == G_RDPPIPESYNC or op == G_RDPTILESYNC then -- thank you cat for telling me this
-                    -- Some displaylists don't set the geometry mode, so we need to disable culling for those
-                    -- I'm using the last clear and set values to avoid glitched colors
-
-                    gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
-                end
-            end)
+        if not dl then
+            return
         end
+
+        gfx_parse(dl, function(cmd, op)
+            if op == G_GEOMETRYMODE then
+                clear = ~_SHIFTR(cmd.w0, 0, 24) | G_CULL_BOTH
+                set = cmd.w1 & (~G_CULL_BOTH)
+
+                gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
+            elseif op == G_RDPLOADSYNC or op == G_RDPPIPESYNC or op == G_RDPTILESYNC then -- thank you cat for telling me this
+                -- Some displaylists don't set the geometry mode, so we need to disable culling for those
+                -- I'm using the last clear and set values to avoid glitched colors
+
+                gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
+            end
+        end)
     end)
 end
 

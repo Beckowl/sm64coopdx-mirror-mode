@@ -27,6 +27,13 @@ function geo_traverse_nodes(firstNode, callback)
     until curGraphNode == firstNode
 end
 
+function graph_node_get_displaylist(node)
+    if node.type == GRAPH_NODE_TYPE_ANIMATED_PART or node.type == GRAPH_NODE_TYPE_DISPLAY_LIST or node.type == GRAPH_NODE_TYPE_TRANSLATION_ROTATION or node.type == GRAPH_NODE_TYPE_TRANSLATION or node.type == GRAPH_NODE_TYPE_ROTATION or node.type == GRAPH_NODE_TYPE_BILLBOARD then
+
+        return cast_graph_node(node).displayList
+    end
+end
+
 -- Implementations of the macros from gbi.h
 
 function _SHIFTL(v, s, w)
