@@ -1,17 +1,3 @@
--- Iterates through all objects in the scene
--- Thanks kermeow for adding coroutines
-function iter_objects()
-	return coroutine.wrap(function()
-		for i = 0, NUM_OBJ_LISTS - 1 do
-			local obj = obj_get_first(i)
-			while obj do
-				coroutine.yield(obj)
-				obj = obj_get_next(obj)
-			end
-		end
-	end)
-end
-
 -- Iterates through all children of a graphNode
 function geo_traverse_nodes(firstNode, callback)
     local curGraphNode = firstNode
