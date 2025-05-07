@@ -101,6 +101,17 @@ local function on_geo_process(n)
 
     if n.extraFlags & CULLING_DISABLED == 0 then
         disable_face_culling(n)
+
+        -- If i don't do this, some models (skeeters, boxes in WWW) turn invisible/inside out
+        -- isn't HOOK_OBJECT_SET_MODEL supposed to be called when an object spawns?
+        for o in iter_objects() do
+            local sharedChild = o.header.gfx.sharedChild
+
+            if sharedChild then
+                disable_face_culling(sharedChild)
+            end
+        end
+
         n.extraFlags = n.extraFlags | CULLING_DISABLED
     end
 
