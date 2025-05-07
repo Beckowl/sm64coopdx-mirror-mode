@@ -32,7 +32,7 @@ local function flip_controls(controller)
 end
 
 local function before_mario_update(m)
-    if m.playerIndex == 0 and gMirrorEnabled then     
+    if m.playerIndex == 0 and gMirrorEnabled then
         flip_controls(m.controller)
     end
 end

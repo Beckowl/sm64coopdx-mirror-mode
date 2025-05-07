@@ -1,4 +1,4 @@
--- Iterates through all children of a graphNode
+-- Iterates through all siblings and children of a graphNode
 function geo_traverse_nodes(firstNode, callback)
     local curGraphNode = firstNode
 
@@ -12,7 +12,6 @@ function geo_traverse_nodes(firstNode, callback)
         curGraphNode = curGraphNode.next
     until curGraphNode == firstNode
 end
-
 
 -- Implementations of the macros from gbi.h
 
