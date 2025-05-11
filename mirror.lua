@@ -1,11 +1,11 @@
 local HOOK_RENDER_MARIO = 1
 local HOOK_RENDER_CAMERA = 2
 
-local G_CULL_BOTH = 0x00000200 | 0x00000400  -- G_CULL_BACK | G_CULL_FRONT
-local DEFAULT_GEOMETRY_MODE = 
-    0x00000004 |   -- G_SHADE
-    0x00200000 |   -- G_SHADING_SMOOTH
-    0x00020000     -- G_LIGHTING
+local G_CULL_BOTH = 0x00000200 | 0x00000400 -- G_CULL_BACK | G_CULL_FRONT
+local DEFAULT_GEOMETRY_MODE =
+    0x00000004 |                            -- G_SHADE
+    0x00200000 |                            -- G_SHADING_SMOOTH
+    0x00020000                              -- G_LIGHTING
 
 local G_RDPLOADSYNC = 0xe6
 local G_RDPPIPESYNC = 0xe7
@@ -82,10 +82,8 @@ local function on_warp(warpType)
     end
 end
 
-local function on_instant_warp(area)
-    if area ~= gMarioStates[0].area.index then
-        camera = nil
-    end
+local function on_instant_warp()
+    camera = nil
 end
 
 local function on_object_set_model(o, modelID)
@@ -93,6 +91,12 @@ local function on_object_set_model(o, modelID)
         disable_face_culling(o.header.gfx.sharedChild)
 
         cullingDisabledModels[modelID] = true
+    end
+end
+
+local function on_object_load(o)
+    if o == gMarioStates[0].marioObj then
+        camera = nil
     end
 end
 
@@ -132,7 +136,7 @@ local function mirror_checkbox(_, value)
     else
         smlua_text_utils_reset_all()
     end
-    
+
     mod_storage_save_bool("mirrorEnabled", value)
 end
 
@@ -144,3 +148,4 @@ hook_event(HOOK_MARIO_UPDATE, on_mario_update)
 hook_event(HOOK_ON_INSTANT_WARP, on_instant_warp)
 hook_event(HOOK_ON_WARP, on_warp)
 hook_event(HOOK_OBJECT_SET_MODEL, on_object_set_model)
+hook_event(HOOK_ON_OBJECT_LOAD, on_object_load)
