@@ -77,7 +77,7 @@ local function on_object_render(o)
 end
 
 local function on_warp(warpType)
-    if warpType == WARP_TYPE_CHANGE_AREA or warpType == WARP_TYPE_CHANGE_LEVEL then
+    if warpType == WARP_TYPE_CHANGE_AREA or warpType == WARP_TYPE_CHANGE_LEVEL or warpType == WARP_TYPE_NOT_WARPING then
         camera = nil
     end
 end
