@@ -27,7 +27,7 @@ local function disable_face_culling(firstNode)
 
         gfx_parse(dl, function(cmd, op)
             if op == G_GEOMETRYMODE then
-                clear = ~(cmd.w0 & ((1 << 24) - 1)) | G_CULL_BOTH
+                clear = ~(cmd.w0 & 0xFFFFFF) | G_CULL_BOTH
                 set = cmd.w1 & (~G_CULL_BOTH)
 
                 gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
