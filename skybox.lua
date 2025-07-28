@@ -31,7 +31,7 @@ function geo_skybox_set_color(node)
 
     local r = get_skybox_color(0)
     local g = get_skybox_color(1)
-    local b = math.floor((math.sin(clock_elapsed() * 5) + 1) * 0.5 * 255)
+    local b = get_skybox_color(2)
 
     gfx_set_command(dl, "gsDPSetEnvColor(%i, %i, %i, 255)", r, g, b)
 end
