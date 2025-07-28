@@ -1,21 +1,8 @@
 local E_MODEL_SKYBOX = smlua_model_util_get_id("skybox_geo")
-
 local useCustomSkybox = mod_storage_load_bool("useCustomSkybox") or not mod_storage_exists("useCustomSkybox")
-local accumulatedRotation, prevYaw = 0, 0
-
-function angle_diff(a, b)
-    local diff = (b - a) & 0xFFFF
-
-    if diff >= 0x8000 then
-        diff = diff - 0x10000
-    end
-
-    return diff
-end
 
 local function bhv_skybox_init(o)
     o.oFlags = OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE
-    set_override_far(math.maxinteger)
 end
 
 local function bhv_skybox_loop(o)
@@ -23,30 +10,30 @@ local function bhv_skybox_loop(o)
         obj_mark_for_deletion(o)
     end
 
-    obj_copy_pos(o, gMarioStates[0].marioObj)
+    o.oPosX = gLakituState.pos.x
+    o.oPosY = gLakituState.pos.y
+    o.oPosZ = gLakituState.pos.z
 
-    local cameraFaceX = gLakituState.focus.x - gLakituState.pos.x
-    local cameraFaceZ = gLakituState.focus.z - gLakituState.pos.z
-
-    local yaw = atan2s(cameraFaceX, cameraFaceZ)
-    local delta = angle_diff(yaw, prevYaw)
-
-    accumulatedRotation = accumulatedRotation + delta
-
-    o.oFaceAngleYaw = (accumulatedRotation // 3) % 0x10000
-
-    prevYaw = yaw
-end
-
-function geo_skybox_set_visibility(node)
-    local switch = cast_graph_node(node)
-    local skybox = get_skybox()
-    switch.selectedCase = (skybox ~= -1 and skybox ~= BACKGROUND_CUSTOM) and 2 or 1
+    if get_skybox() == -1 then
+        cur_obj_hide()
+    else
+        cur_obj_unhide()
+    end
 end
 
 function geo_skybox_set_texture(node)
     local switch = cast_graph_node(node)
-    switch.selectedCase = get_skybox() + 1
+    switch.selectedCase = get_skybox()
+end
+
+function geo_skybox_set_color(node)
+    local dl = cast_graph_node(node.next).displayList
+
+    local r = get_skybox_color(0)
+    local g = get_skybox_color(1)
+    local b = math.floor((math.sin(clock_elapsed() * 5) + 1) * 0.5 * 255)
+
+    gfx_set_command(dl, "gsDPSetEnvColor(%i, %i, %i, 255)", r, g, b)
 end
 
 local id_bhvSkyBox = hook_behavior(nil, OBJ_LIST_DEFAULT, true, bhv_skybox_init, bhv_skybox_loop, "SkyBox")
