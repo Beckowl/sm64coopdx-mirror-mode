@@ -15,7 +15,9 @@ local function bhv_skybox_loop(o)
     o.oPosY = gLakituState.pos.y
     o.oPosZ = gLakituState.pos.z
 
-    if get_skybox() == -1 then
+    local skybox = get_skybox()
+
+    if skybox == -1 or skybox >= BACKGROUND_CUSTOM then
         cur_obj_hide()
     else
         cur_obj_unhide()
@@ -53,3 +55,4 @@ end
 
 hook_mod_menu_checkbox("Use custom skybox", useCustomSkybox, custom_skybox_toggle)
 hook_event(HOOK_UPDATE, on_update)
+    

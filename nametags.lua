@@ -58,8 +58,7 @@ hook_event(HOOK_ON_NAMETAGS_RENDER, function(playerIndex, pos)
         local scale = -300 / screenPos.z * djui_hud_get_fov_coeff()
         screenPos.y = screenPos.y - 16 * scale
 
-        local measure = djui_hud_measure_text(text) * scale * 0.5
-        local x = screenPos.x - measure
+        local x = screenPos.x - djui_hud_measure_text(text) * scale * 0.5
         local y = screenPos.y
 
         local r, g, b = network_get_player_text_color(playerIndex)
@@ -78,14 +77,13 @@ hook_event(HOOK_ON_NAMETAGS_RENDER, function(playerIndex, pos)
         djui_hud_print_outlined_text_interpolated(text, prev.x, prev.y, prev.scale, x, y, scale, r, g, b, alpha, 0.25)
 
         if playerIndex ~= 0 and showHealth then
-            local m = gMarioStates[playerIndex]
             local healthScale = 90 * scale
             local healthX = screenPos.x - (healthScale * 0.5)
             local healthY = screenPos.y - 72 * scale
 
             djui_hud_set_color(255, 255, 255, alpha)
             hud_render_power_meter_interpolated(
-                m.health,
+                gMarioStates[playerIndex].health,
                 prev.healthX, prev.healthY, prev.healthW, prev.healthH,
                 healthX, healthY, healthScale, healthScale
             )
