@@ -32,9 +32,15 @@ end
 function geo_skybox_set_color(node)
     local dl = cast_graph_node(node.next).displayList
 
-    local r = get_skybox_color(0)
-    local g = get_skybox_color(1)
-    local b = get_skybox_color(2)
+    local r, g, b
+
+    if get_skybox() == 8 and save_file_get_star_flags(get_current_save_file_num() - 1, COURSE_JRB - 1) & (1 << 0) == 0 then
+        r, g, b = 0x50, 0x64, 0x5A
+    else
+        r = get_skybox_color(0)
+        g = get_skybox_color(1)
+        b = get_skybox_color(2)
+    end
 
     gfx_set_command(dl, "gsDPSetEnvColor(%i, %i, %i, 255)", r, g, b)
 end
@@ -55,4 +61,3 @@ end
 
 hook_mod_menu_checkbox("Use custom skybox", useCustomSkybox, custom_skybox_toggle)
 hook_event(HOOK_UPDATE, on_update)
-    
