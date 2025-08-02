@@ -92,7 +92,7 @@ local function on_object_render(o)
 end
 
 local function on_geo_process(node)
-    if node.type ~= GRAPH_NODE_TYPE_CAMERA or node.hookProcess ~= HOOK_PROCESS_CAMERA then
+    if not gMirrorEnabled or node.type ~= GRAPH_NODE_TYPE_CAMERA or node.hookProcess ~= HOOK_PROCESS_CAMERA then
         return
     end
 
