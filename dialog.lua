@@ -35,12 +35,12 @@ function replace_directional_dialogs()
 end
 
 function restore_directional_dialogs()
-    for k, v in ipairs(directionalDialogs) do
+    for _, v in ipairs(directionalDialogs) do
         if replacedDialogs[v] then
             smlua_text_utils_dialog_restore(v)
         end
     end
-    
+
     replacedDialogs = {}
 end
 

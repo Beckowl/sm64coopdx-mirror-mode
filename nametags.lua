@@ -32,12 +32,6 @@ local function network_get_player_text_color(localIndex)
     return color.r, color.g, color.b
 end
 
-local function clamp(val, minVal, maxVal)
-    if val < minVal then return minVal end
-    if val > maxVal then return maxVal end
-    return val
-end
-
 hook_event(HOOK_ON_NAMETAGS_RENDER, function(playerIndex, pos)
     if not gMirrorEnabled then return end
 
@@ -62,7 +56,7 @@ hook_event(HOOK_ON_NAMETAGS_RENDER, function(playerIndex, pos)
         local y = screenPos.y
 
         local r, g, b = network_get_player_text_color(playerIndex)
-        local alpha = playerIndex == 0 and 255 or math.min(np.fadeOpacity << 3, 255) * clamp(4 - scale, 0, 1)
+        local alpha = playerIndex == 0 and 255 or math.min(np.fadeOpacity << 3, 255) * math.clamp(4 - scale, 0, 1)
 
         local prev = nametagInterp[playerIndex] or {
             x = x,
