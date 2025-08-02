@@ -102,7 +102,6 @@ local function on_geo_process(node)
     mtxf_mul(camera.matrixPtrPrev, camera.matrixPtrPrev, mirrorMatrix)
 
     if node.extraFlags & FLAG_CULLING_DISABLED == 0 then
-        cullingDisabledNodes = {}
         disable_face_culling(node)
 
         for i = 0, NUM_OBJ_LISTS - 1 do
