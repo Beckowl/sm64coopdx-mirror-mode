@@ -32,7 +32,7 @@ local function network_get_player_text_color(localIndex)
     return color.r, color.g, color.b
 end
 
-hook_event(HOOK_ON_NAMETAGS_RENDER, function(playerIndex, pos)
+local function nametags_render(playerIndex, pos)
     if not gMirrorEnabled then return end
 
     if not showHealthSaved then
@@ -97,7 +97,8 @@ hook_event(HOOK_ON_NAMETAGS_RENDER, function(playerIndex, pos)
     end
 
     return result
-end)
+end
+
 
 hook_event(HOOK_ON_HUD_RENDER_BEHIND, function()
     if gMirrorEnabled and showHealthSaved then
@@ -109,3 +110,5 @@ end)
 hook_event(HOOK_ON_PLAYER_DISCONNECTED, function(playerIndex)
     nametagInterp[playerIndex] = nil
 end)
+
+hook_event(HOOK_ON_NAMETAGS_RENDER, nametags_render)
