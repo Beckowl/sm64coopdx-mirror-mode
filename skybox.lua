@@ -47,9 +47,10 @@ end
 
 local id_bhvSkyBox = hook_behavior(nil, OBJ_LIST_DEFAULT, true, bhv_skybox_init, bhv_skybox_loop, "SkyBox")
 local skyboxBehavior = get_behavior_from_id(id_bhvSkyBox)
+local actSelectBehavior = get_behavior_from_id(id_bhvActSelector)
 
 local function on_update()
-    if count_objects_with_behavior(skyboxBehavior) <= 0 and useCustomSkybox then
+    if count_objects_with_behavior(skyboxBehavior) <= 0 and count_objects_with_behavior(actSelectBehavior) <= 0 and useCustomSkybox then
         spawn_non_sync_object(id_bhvSkyBox, E_MODEL_SKYBOX, 0, 0, 0, nil)
     end
 end
