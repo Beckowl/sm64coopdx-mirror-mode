@@ -1,13 +1,11 @@
 local G_CULL_BOTH = 0x00000200 | 0x00000400 -- G_CULL_BACK | G_CULL_FRONT
 
-local G_RDPLOADSYNC = 0xe6
 local G_RDPPIPESYNC = 0xe7
-local G_RDPTILESYNC = 0xe8
 
 local HOOK_RENDER_MARIO = 1
-local HOOK_PROCESS_CAMERA = 1
+local HOOK_PROCESS_CAMERA = 2
 
-local FLAG_CULLING_DISABLED = 16
+local FLAG_CULL_DISABLED = 16
 local cullingDisabled = {}
 
 local mirrorMatrix = {
@@ -30,52 +28,60 @@ local function graph_node_get_dl(node)
     end
 end
 
-local function geo_traverse_nodes(firstNode, callback)
+local function disable_dl_culling(dl, clear, set)
+    if not dl or cullingDisabled[dl._pointer] then return end
+
+    gfx_parse(dl, function(cmd, op)
+        if op == G_RDPPIPESYNC then
+            gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
+        elseif op == G_GEOMETRYMODE then
+            clear = ~(cmd.w0 & 0xFFFFFF) | G_CULL_BOTH
+            set = cmd.w1 & (~G_CULL_BOTH)
+
+            gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
+        elseif op == G_DL then
+            disable_dl_culling(gfx_get_display_list(cmd), clear, set)
+        end
+    end)
+
+    cullingDisabled[dl._pointer] = true
+end
+
+local function disable_face_culling(firstNode)
     local curGraphNode = firstNode
 
     repeat
-        callback(curGraphNode)
+        local dl = graph_node_get_dl(curGraphNode)
+
+        disable_dl_culling(dl, G_CULL_BOTH, 0)
 
         if curGraphNode.children then
-            geo_traverse_nodes(curGraphNode.children, callback)
+            disable_face_culling(curGraphNode.children)
         end
 
         curGraphNode = curGraphNode.next
     until curGraphNode == firstNode
 end
 
-local function disable_face_culling(firstNode)
-    local clear, set = G_CULL_BOTH, 0
-
-    geo_traverse_nodes(firstNode, function(node)
-        local dl = graph_node_get_dl(node)
-
-        if not dl or cullingDisabled[dl] then
-            return
-        end
-
-        gfx_parse(dl, function(cmd, op)
-            if op == G_GEOMETRYMODE then
-                clear = ~(cmd.w0 & 0xFFFFFF) | G_CULL_BOTH
-                set = cmd.w1 & (~G_CULL_BOTH)
-
-                gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
-            elseif op == G_RDPLOADSYNC or op == G_RDPPIPESYNC or op == G_RDPTILESYNC then
-                gfx_set_command(cmd, "gsSPGeometryMode(%i, %i)", clear, set)
-            end
-        end)
-
-        cullingDisabled[dl] = true
-    end)
-end
-
 local function disable_object_face_culling(o, _, modelId)
     modelId = modelId or obj_get_model_id_extended(o)
+    local sharedChild = o.header.gfx.sharedChild
 
-    if not cullingDisabled[modelId] and o.header.gfx.sharedChild then
-        disable_face_culling(o.header.gfx.sharedChild)
+    if sharedChild and o.header.gfx.node.extraFlags & FLAG_CULL_DISABLED == 0 then
+        disable_face_culling(sharedChild)
+        o.header.gfx.node.extraFlags = o.header.gfx.node.extraFlags | FLAG_CULL_DISABLED
+    end
+end
 
-        cullingDisabled[modelId] = true
+local function disable_all_culling(cameraNode)
+    disable_face_culling(cameraNode)
+
+    for i = 0, NUM_OBJ_LISTS - 1 do
+        local o = obj_get_first(i)
+        while o do
+            disable_object_face_culling(o)
+            o = obj_get_next(o)
+        end
     end
 end
 
@@ -92,27 +98,17 @@ local function on_object_render(o)
 end
 
 local function on_geo_process(node)
-    if not gMirrorEnabled or node.type ~= GRAPH_NODE_TYPE_CAMERA or node.hookProcess ~= HOOK_PROCESS_CAMERA then
-        return
-    end
+    if gMirrorEnabled and node.type == GRAPH_NODE_TYPE_CAMERA and node.hookProcess == HOOK_PROCESS_CAMERA then
+        local camera = cast_graph_node(node)
 
-    local camera = cast_graph_node(node)
+        mtxf_mul(camera.matrixPtr, camera.matrixPtr, mirrorMatrix)
+        mtxf_mul(camera.matrixPtrPrev, camera.matrixPtrPrev, mirrorMatrix)
 
-    mtxf_mul(camera.matrixPtr, camera.matrixPtr, mirrorMatrix)
-    mtxf_mul(camera.matrixPtrPrev, camera.matrixPtrPrev, mirrorMatrix)
+        if node.extraFlags & FLAG_CULL_DISABLED == 0 then
+            disable_all_culling(node)
 
-    if node.extraFlags & FLAG_CULLING_DISABLED == 0 then
-        disable_face_culling(node)
-
-        for i = 0, NUM_OBJ_LISTS - 1 do
-            local o = obj_get_first(i)
-            while o do
-                disable_object_face_culling(o)
-                o = obj_get_next(o)
-            end
+            node.extraFlags = node.extraFlags | FLAG_CULL_DISABLED
         end
-
-        node.extraFlags = node.extraFlags | FLAG_CULLING_DISABLED
     end
 end
 
