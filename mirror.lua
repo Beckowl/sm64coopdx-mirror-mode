@@ -29,7 +29,7 @@ local function graph_node_get_dl(node)
 end
 
 local function disable_dl_culling(dl, clear, set)
-    if not dl or cullingDisabled[dl._pointer] then return end
+    if not dl or cullingDisabled[dl] then return end
 
     gfx_parse(dl, function(cmd, op)
         if op == G_RDPPIPESYNC then
@@ -44,7 +44,7 @@ local function disable_dl_culling(dl, clear, set)
         end
     end)
 
-    cullingDisabled[dl._pointer] = true
+    cullingDisabled[dl] = true
 end
 
 local function disable_face_culling(firstNode)
@@ -63,13 +63,12 @@ local function disable_face_culling(firstNode)
     until curGraphNode == firstNode
 end
 
-local function disable_object_face_culling(o, _, modelId)
-    modelId = modelId or obj_get_model_id_extended(o)
+local function disable_object_face_culling(o)
     local sharedChild = o.header.gfx.sharedChild
 
-    if sharedChild and o.header.gfx.node.extraFlags & FLAG_CULL_DISABLED == 0 then
+    if sharedChild and not cullingDisabled[sharedChild] then
         disable_face_culling(sharedChild)
-        o.header.gfx.node.extraFlags = o.header.gfx.node.extraFlags | FLAG_CULL_DISABLED
+        cullingDisabled[sharedChild] = true
     end
 end
 
