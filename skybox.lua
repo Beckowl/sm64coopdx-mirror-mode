@@ -4,6 +4,7 @@ local useCustomSkybox = mod_storage_load_bool("useCustomSkybox") or not mod_stor
 local function bhv_skybox_init(o)
     o.oFlags = OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE
     o.header.gfx.skipInViewCheck = true
+    cur_obj_hide()
 end
 
 local function bhv_skybox_loop(o)
