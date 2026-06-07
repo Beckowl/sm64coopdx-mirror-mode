@@ -6,7 +6,6 @@ local HOOK_RENDER_MARIO = 1
 local HOOK_PROCESS_CAMERA = 2
 
 local FLAG_CULL_DISABLED = 16
-local cullingDisabled = {}
 
 local mirrorMatrix = {
     m00 = -1, m01 =  0, m02 =  0, m03 = 0,
@@ -29,7 +28,9 @@ local function graph_node_get_dl(node)
 end
 
 local function disable_dl_culling(dl, clear, set)
-    if not dl or cullingDisabled[dl] then return end
+    if not dl then 
+        return 
+    end
 
     gfx_parse(dl, function(cmd, op)
         if op == G_RDPPIPESYNC then
@@ -43,8 +44,6 @@ local function disable_dl_culling(dl, clear, set)
             disable_dl_culling(gfx_get_display_list(cmd), clear, set)
         end
     end)
-
-    cullingDisabled[dl] = true
 end
 
 local function disable_face_culling(firstNode)
@@ -66,9 +65,8 @@ end
 local function disable_object_face_culling(o)
     local sharedChild = o.header.gfx.sharedChild
 
-    if sharedChild and not cullingDisabled[sharedChild] then
+    if sharedChild then
         disable_face_culling(sharedChild)
-        cullingDisabled[sharedChild] = true
     end
 end
 
